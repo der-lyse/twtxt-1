@@ -43,6 +43,8 @@ class SourceResponse:
 
     @property
     def natural_last_modified(self):
+        if not self.last_modified:
+            return "unknown"
         last_modified = parsedate_to_datetime(self.last_modified)
         now = datetime.now(timezone.utc)
         tense = "from now" if last_modified > now else "ago"
