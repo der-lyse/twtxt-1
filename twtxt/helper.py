@@ -65,11 +65,11 @@ def style_source_with_status(source, status, porcelain=False):
         return "{nick}\t{url}\t{status}\t{content_length}\t{last_modified}".format(
             nick=source.nick,
             url=source.url,
-            status=status.status_code,
-            content_length=status.content_length,
-            last_modified=status.last_modified)
+            status=status.status_code if status else "",
+            content_length=status.content_length if status else "",
+            last_modified=status.last_modified if status else "")
     else:
-        if status.status_code == 200:
+        if status and status.status_code == 200:
             scolor, smessage = "green", str(status.status_code)
         elif status:
             scolor, smessage = "red", str(status.status_code)
@@ -79,8 +79,8 @@ def style_source_with_status(source, status, porcelain=False):
             nick=click.style(source.nick, bold=True, fg=scolor),
             url=source.url,
             status=click.style(smessage, fg=scolor),
-            content_length=status.natural_content_length,
-            last_modified=status.natural_last_modified)
+            content_length=status.natural_content_length if status else "connection failed",
+            last_modified=status.natural_last_modified if status else "feed probably dead")
 
 
 def validate_created_at(ctx, param, value):
