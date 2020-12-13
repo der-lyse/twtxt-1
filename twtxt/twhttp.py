@@ -91,7 +91,7 @@ def retrieve_file(client, source, limit, cache):
             return []
 
     if response.status == 200:
-        tweets = parse_tweets(content.splitlines(), source)
+        tweets = parse_tweets(content.split("\n"), source)
 
         if cache:
             last_modified_header = response.headers.get("Last-Modified")
