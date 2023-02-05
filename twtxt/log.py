@@ -24,4 +24,4 @@ def init_logging(debug=False):
     if debug:
         logger.setLevel(logging.DEBUG)
     else:
-        logger.setLevel(logging.CRITICAL)
+        logger.setLevel(logging.ERROR)

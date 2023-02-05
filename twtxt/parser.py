@@ -79,6 +79,8 @@ def parse_tweet(raw_tweet, source, now=None):
     created_at = parse_iso8601(raw_created_at)
 
     if created_at > now:
-        raise ValueError("Tweet is from the future")
+        import humanize
+        from_now = "%s from now" % humanize.naturaldelta(now - created_at)
+        logger.error("Tweet by %s@%s is from the future: %r %s" % (source.nick, source.url, raw_created_at, from_now))
 
     return Tweet(click.unstyle(text.strip()), created_at, source)
