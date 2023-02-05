@@ -142,8 +142,8 @@ def process_sources_for_file(client, sources, limit, cache=None):
     return sorted(g_tweets, reverse=True)[:limit]
 
 
-def get_remote_tweets(sources, limit=None, timeout=5.0, cache=None):
-    conn = aiohttp.TCPConnector(use_dns_cache=True)
+def get_remote_tweets(sources, limit=None, timeout=5.0, cache=None, family=0):
+    conn = aiohttp.TCPConnector(use_dns_cache=True, family=family)
     headers = generate_user_agent()
     with aiohttp.ClientSession(connector=conn, headers=headers, conn_timeout=timeout) as client:
         loop = asyncio.get_event_loop()

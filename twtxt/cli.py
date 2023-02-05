@@ -11,6 +11,7 @@
 import logging
 import os
 import sys
+import socket
 import textwrap
 from itertools import chain
 
@@ -119,8 +120,14 @@ def tweet(ctx, created_at, twtfile, text):
 @click.option("--force-update",
               is_flag=True,
               help="Force update even if cache is up-to-date. (Default: False)")
+@click.option("--ipv4", "-4",
+              "family", flag_value=socket.AF_INET,
+              help="Resolve names to IPv4 addresses only and not try IPv6")
+@click.option("--ipv6", "-6",
+              "family", flag_value=socket.AF_INET6,
+              help="Resolve names to IPv6 addresses only and not try IPv4")
 @click.pass_context
-def timeline(ctx, pager, limit, twtfile, sorting, timeout, porcelain, source, cache, force_update):
+def timeline(ctx, pager, limit, twtfile, sorting, timeout, porcelain, source, cache, force_update, family):
     """Retrieve your personal timeline."""
     if source:
         source_obj = ctx.obj["conf"].get_source_by_nick(source)
@@ -138,7 +145,7 @@ def timeline(ctx, pager, limit, twtfile, sorting, timeout, porcelain, source, ca
             with Cache.discover(update_interval=ctx.obj["conf"].timeline_update_interval) as cache:
                 force_update = force_update or not cache.is_valid
                 if force_update:
-                    tweets = get_remote_tweets(sources, limit, timeout, cache)
+                    tweets = get_remote_tweets(sources, limit, timeout, cache, family or 0)
                 else:
                     logger.debug("Multiple calls to 'timeline' within {0} seconds. Skipping update".format(
                         cache.update_interval))
