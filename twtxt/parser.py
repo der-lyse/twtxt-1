@@ -51,7 +51,8 @@ def parse_tweets(raw_tweets, source, now=None):
         except (ValueError, OverflowError) as e:
             logger.debug("{0} - {1}".format(source.url, e))
         else:
-            tweets.append(tweet)
+            if tweet is not None:
+                tweets.append(tweet)
 
     return tweets
 
@@ -68,6 +69,9 @@ def parse_tweet(raw_tweet, source, now=None):
         :returns: the parsed tweet
         :rtype: Tweet
     """
+    if not raw_tweet or raw_tweet.startswith("#"):
+        return None
+
     if now is None:
         now = datetime.now(timezone.utc)
 
