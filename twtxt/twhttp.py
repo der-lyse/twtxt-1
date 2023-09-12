@@ -167,7 +167,7 @@ def process_sources_for_file(client, sources, limit, cache=None):
 def get_remote_tweets(sources, limit=None, timeout=5.0, cache=None, family=0):
     conn = aiohttp.TCPConnector(use_dns_cache=True, family=family)
     headers = generate_user_agent()
-    with aiohttp.ClientSession(connector=conn, headers=headers, conn_timeout=timeout) as client:
+    with aiohttp.ClientSession(connector=conn, headers=headers, conn_timeout=timeout, read_timeout=timeout) as client:
         loop = asyncio.get_event_loop()
 
         def start_loop(client, sources, limit, cache=None):
@@ -181,7 +181,7 @@ def get_remote_tweets(sources, limit=None, timeout=5.0, cache=None, family=0):
 def get_remote_status(sources, timeout=5.0):
     conn = aiohttp.TCPConnector(use_dns_cache=True)
     headers = generate_user_agent()
-    with aiohttp.ClientSession(connector=conn, headers=headers, conn_timeout=timeout) as client:
+    with aiohttp.ClientSession(connector=conn, headers=headers, conn_timeout=timeout, read_timeout=timeout) as client:
         loop = asyncio.get_event_loop()
         result = loop.run_until_complete(process_sources_for_status(client, sources))
     return result
