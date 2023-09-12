@@ -44,16 +44,20 @@ def parse_tweets(raw_tweets, source, now=None):
     if now is None:
         now = datetime.now(timezone.utc)
 
+    errors = 0
     tweets = []
     for line in raw_tweets:
         try:
             tweet = parse_tweet(line, source, now)
         except (ValueError, OverflowError) as e:
-            logger.debug("{0} - {1}".format(source.url, e))
+            logger.error("{0} - {1}".format(source.url, e))
+            errors += 1
         else:
             if tweet is not None:
                 tweets.append(tweet)
 
+    if errors > 0:
+        logger.error("{0} - {1} tweets, {2} errors".format(source.url, len(tweets), errors))
     return tweets
 
 
