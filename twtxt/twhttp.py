@@ -77,18 +77,36 @@ def retrieve_status(client, source):
 @asyncio.coroutine
 def retrieve_file(client, source, limit, cache):
     is_cached = cache.is_cached(source.url) if cache else None
-    headers = {"If-Modified-Since": cache.last_modified(source.url)} if is_cached else {}
+    if is_cached:
+        last_modified = cache.last_modified(source.url)
+        headers = {"If-Modified-Since": last_modified} if last_modified else {}
+    else:
+        headers = {}
+    logger.debug("%s...", source.url)
 
     try:
         response = yield from client.get(source.url, headers=headers)
-        content = yield from response.text()
     except Exception as e:
+        logger.error("%s: downloading failed: %r", source.url, e)
         if is_cached:
             logger.debug("{0}: {1} - using cached content".format(source.url, e))
             return cache.get_tweets(source.url, limit)
         else:
             logger.debug("{0}: {1}".format(source.url, e))
             return []
+    try:
+        content = yield from response.text()
+    except Exception as e:
+        try:
+            content = yield from response.text('utf-8')
+        except Exception as e:
+            logger.error("%s: reading failed: %r", source.url, e)
+            if is_cached:
+                logger.debug("{0}: {1} - using cached content".format(source.url, e))
+                return cache.get_tweets(source.url, limit)
+            else:
+                logger.debug("{0}: {1}".format(source.url, e))
+                return []
 
     if response.status == 200:
         tweets = parse_tweets(content.split("\n"), source)
@@ -99,7 +117,8 @@ def retrieve_file(client, source, limit, cache):
                 logger.debug("{0} returned 200 and Last-Modified header - adding content to cache".format(source.url))
                 cache.add_tweets(source.url, last_modified_header, tweets)
             else:
-                logger.debug("{0} returned 200 but no Last-Modified header - can’t cache content".format(source.url))
+                logger.error("{0} returned 200 but no Last-Modified header - can’t cache content".format(source.url))
+                cache.add_tweets(source.url, None, tweets)
         else:
             logger.debug("{0} returned 200".format(source.url))
 
@@ -114,10 +133,13 @@ def retrieve_file(client, source, limit, cache):
         return []
 
     elif is_cached:
+        if response.status != 304:
+            logger.error("%s returned %d", source.url, response.status)
         logger.debug("{0} returned {1} - using cached content".format(source.url, response.status))
         return cache.get_tweets(source.url, limit)
 
     else:
+        logger.error("%s returned %d", source.url, response.status)
         logger.debug("{0} returned {1}".format(source.url, response.status))
         return []
 
