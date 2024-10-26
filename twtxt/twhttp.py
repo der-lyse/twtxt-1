@@ -95,18 +95,15 @@ def retrieve_file(client, source, limit, cache):
             logger.debug("{0}: {1}".format(source.url, e))
             return []
     try:
-        content = yield from response.text()
+        content = yield from response.text(encoding='utf-8')
     except Exception as e:
-        try:
-            content = yield from response.text('utf-8')
-        except Exception as e:
-            logger.error("%s: reading failed: %r", source.url, e)
-            if is_cached:
-                logger.debug("{0}: {1} - using cached content".format(source.url, e))
-                return cache.get_tweets(source.url, limit)
-            else:
-                logger.debug("{0}: {1}".format(source.url, e))
-                return []
+        logger.error("%s: reading failed: %r", source.url, e)
+        if is_cached:
+            logger.debug("{0}: {1} - using cached content".format(source.url, e))
+            return cache.get_tweets(source.url, limit)
+        else:
+            logger.debug("{0}: {1}".format(source.url, e))
+            return []
 
     if response.status == 200:
         tweets = parse_tweets(content.split("\n"), source)
